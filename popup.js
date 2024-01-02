@@ -112,8 +112,13 @@
     return finalUrl
   }
 
-  function constructUrl() {
-    const url1 = 'https://acuracertified-stage.aecloud.io/shopping/checkout/creditApplication?abc=10&bb=20'
+  async function constructUrl() {
+    const tabs = await chrome.tabs.query({});
+
+    const url1 = tabs[0].url;
+
+    // const url1 = 'https://acuracertified-stage.aecloud.io/shopping/checkout/creditApplication?abc=10&bb=20'
+    // const url1 = window.location.href;
 
     const finalUrl = getLocalFinalUrl(url1);
 
@@ -124,7 +129,9 @@
 
   }
 
-  constructUrl()
+  (async () => {
+    await constructUrl();
+  })();
 
   function openLocalUrl(value) {
     window.open(value)
