@@ -10,6 +10,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "transfer") {
+    console.log('SADSADAD', request)
     chrome.storage.sync.set(
       {
         lstFromWebsite: request.field.fromWebsite,

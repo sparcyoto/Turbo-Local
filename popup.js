@@ -55,7 +55,7 @@
   })();
 
   async function getActiveTabURL(url) {
-    const [tab] = await chrome.tabs.query({ url: normalizeUrl(url) });
+    const [tab] = await chrome.tabs.query({ url: url });
 
     return tab;
   }
@@ -75,7 +75,7 @@
       if (!url) continue;
 
       const node = document.createElement("option");
-      node.value = url;
+      node.value = tab.url;
       node.textContent = tab.url.substr(0, 120);
 
       websiteFromInputElement.appendChild(node.cloneNode(true));
@@ -459,8 +459,8 @@
     await chrome.runtime.sendMessage({
       action: "transfer",
       field: {
-        fromWebsite: websiteFromInputElement.value,
-        toWebsite: websiteToInputElement.value,
+        fromWebsite: truncateUrl(websiteFromInputElement.value),
+        toWebsite: truncateUrl(websiteToInputElement.value),
         // toWebsite: 'http://localhost:3001',
       },
     });
