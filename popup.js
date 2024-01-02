@@ -54,6 +54,12 @@
     injectInitialTabValues();
   })();
 
+  async function getActiveTabURL(url) {
+    const [tab] = await chrome.tabs.query({ url: normalizeUrl(url) });
+
+    return tab;
+  }
+
   async function injectAvailableTabs() {
     const tabs = await chrome.tabs.query({});
     // alert(chrome.tabs)
@@ -113,25 +119,29 @@
   }
 
   async function constructUrl() {
-    const tabs = await chrome.tabs.query({});
+    const tabs = await getActiveTabURL(websiteFromInputElement?.value);
 
-    const url1 = tabs[0].url;
+    console.log('kk', tabs, websiteFromInputElement?.value)
+
+    // return;
+
+    const url1 = tabs.url;
 
     // const url1 = 'https://acuracertified-stage.aecloud.io/shopping/checkout/creditApplication?abc=10&bb=20'
     // const url1 = window.location.href;
 
     const finalUrl = getLocalFinalUrl(url1);
 
-    console.log('kk', finalUrl)
 
     localhost3001.value = getLocalFinalUrl(url1, 'http://localhost:3001/');
     localhost3000.value = getLocalFinalUrl(url1, 'http://localhost:3000/');
 
   }
 
-  (async () => {
-    await constructUrl();
-  })();
+  constructUrl()
+  // (async () => {
+  //   await constructUrl();
+  // })()
 
   function openLocalUrl(value) {
     window.open(value)
@@ -144,6 +154,7 @@
 
     for (i = 0; i < acc.length; i++) {
       acc[i].addEventListener("click", function () {
+        constructUrl()
         this.classList.toggle("active");
         var panel = this.nextElementSibling;
         if (panel.style.display === "block") {
@@ -298,11 +309,7 @@
   const session = 'session'
   const local = 'local'
 
-  async function getActiveTabURL(url) {
-    const [tab] = await chrome.tabs.query({ url: normalizeUrl(url) });
 
-    return tab;
-  }
 
 
   function normalizeUrl(url) {
