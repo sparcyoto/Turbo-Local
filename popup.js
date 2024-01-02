@@ -348,6 +348,66 @@
     }
   }
 
+  var websiteFromInputElementCookieData = '';
+
+
+  const getCookiesStorage = async () => {
+
+    try {
+      var cookieData = document.cookie.split(';').map(function (c) {
+        var i = c.indexOf('=');
+        return [c.substring(0, i), c.substring(i + 1)];
+      });
+
+      const cookieString = JSON.stringify(JSON.stringify(cookieData));
+
+      console.log('success cokies', cookieString)
+      return cookieString;
+    } catch (err) {
+      console.error(
+        'error in cookies',
+        err
+      )
+    }
+
+  }
+
+  const getCookiesStorageFromSelectedFromTab = async () => {
+
+    const activeTab = await getActiveTabURL(websiteFromInputElement?.value)
+    const tabId = activeTab?.id
+
+    console.log('out', activeTab, tabId)
+    // console.log('out')
+
+
+    // await clearExtensionStorage(local)
+
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tabId, allFrames: true },
+        func: getCookiesStorage,
+        args: [session], // passing typeOfStorage to getDomainStorageData func
+      },
+      (injectionResults) => {
+        try {
+          console.log(
+            'cookies Injection',
+            injectionResults,
+            injectionResults[0]?.result
+          )
+
+          chrome.storage.local.set({
+            cookies: JSON.parse(injectionResults[0]?.result),
+          })
+        } catch (err) {
+          console.error('cookies error', err)
+        }
+      }
+    )
+  }
+
+
 
 
 
@@ -396,19 +456,20 @@
       const selectedStorage =
         typeOfStorage === 'local' ? localStorage : sessionStorage
 
-      console.log('DSFAFSDFSADF')
       if (selectedStorage) {
-        chrome.storage.local.get(typeOfStorage, function (items) {
-          if (items[typeOfStorage]) {
-            for (const storage of items[typeOfStorage]) {
-              const objKey = Object.keys(storage)
-              selectedStorage.setItem(
-                objKey[0],
-                storage[objKey]
-              )
+        chrome.storage.local.get(typeOfStorage,
+          function (items) {
+            console.log('DSFAFSDFSADF', items)
+            if (items[typeOfStorage]) {
+              for (const storage of items[typeOfStorage]) {
+                const objKey = Object.keys(storage)
+                selectedStorage.setItem(
+                  objKey[0],
+                  storage[objKey]
+                )
+              }
             }
-          }
-        })
+          })
       }
     } catch (err) {
       console.error(
@@ -418,6 +479,47 @@
       )
     }
   }
+
+
+  function setCookiesStorage() {
+    chrome.storage.local.get('cookies', function (data) {
+
+      const { cookies } = data;
+      console.log('cookie setting', { data, cookies })
+
+      var cookieData = JSON.parse(cookies);
+      cookieData.forEach(function (arr) {
+        document.cookie = arr[0] + '=' + arr[1];
+      });
+
+
+    });
+  }
+
+
+  const setCookiesStorageFromSelectedFromTab = async () => {
+    const activeTab = await getActiveTabURL(websiteToInputElement?.value)
+
+    console.log('set cookies', { activeTab, websiteFromInputElementCookieData })
+    const tabId = activeTab?.id
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tabId, allFrames: true },
+        func: setCookiesStorage,
+        args: [], // passing typeOfStorage to setDomainStorageData func
+      },
+      (injectionResults) => {
+        try {
+          console.log('Setting SessionStorage Successfull', injectionResults)
+        } catch (err) {
+          console.error(
+            'Error occured in injectionResults of setStoragehandler',
+            err
+          )
+        }
+      }
+    )
+  };
 
   const setSessionStorageBtn = async () => {
     const activeTab = await getActiveTabURL(websiteToInputElement?.value)
@@ -445,6 +547,8 @@
 
 
   async function handleTransfer() {
+    await getCookiesStorageFromSelectedFromTab();
+    await setCookiesStorageFromSelectedFromTab();
     await getSessionStorageBtn();
     await setSessionStorageBtn()
     // return;
