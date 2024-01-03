@@ -13,9 +13,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('SADSADAD', request)
     chrome.storage.sync.set(
       {
-        // lstFromWebsite: request.field.fromWebsite,
-        // lstToWebsite: request.field.toWebsite,
-        abc: 'something'
+        lstFromWebsite: request.field.fromWebsite,
+        lstToWebsite: request.field.toWebsite,
       },
       async () => {
         await transferLocalStorage();
