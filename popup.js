@@ -51,17 +51,21 @@
 
   (async () => {
     await injectAvailableTabs();
-    injectInitialTabValues();
+    await injectInitialTabValues();
   })();
 
-  async function getActiveTabURL(url) {
-    const [tab] = await chrome.tabs.query({ url: url });
+  async function getActiveTabURL(tabDetails) {
+    const tabDetailsParsed = JSON.parse(tabDetails);
+    const [tab] = await chrome.tabs.query({ index: tabDetailsParsed?.index });
 
     return tab;
   }
 
   async function injectAvailableTabs() {
     const tabs = await chrome.tabs.query({});
+    // const [activeTab] = await chrome.tabs.query({ currentWindow: true, active: true });
+    // alert(activeTab.url);
+    // console.log('ac', activeTab.url)
     // alert(chrome.tabs)
 
 
@@ -75,7 +79,7 @@
       if (!url) continue;
 
       const node = document.createElement("option");
-      node.value = tab.url;
+      node.value = JSON.stringify(tab);
       node.textContent = tab.url.substr(0, 120);
 
       websiteFromInputElement.appendChild(node.cloneNode(true));
@@ -84,12 +88,20 @@
   }
 
 
-  function injectInitialTabValues() {
+  async function injectInitialTabValues() {
+    const [activeTab] = await chrome.tabs.query({ currentWindow: true, active: true });
+    // const [activeTab] = await chrome.tabs.query({ index: 0 });
+
+    console.log("kk", activeTab)
+
+
     chrome.storage.sync.get(["lstFromWebsite"], (res) => {
+      // alert(res.lstToWebsite);
+      // websiteFromInputElement.value = activeTab.url || res.lstFromWebsite;
       websiteFromInputElement.value = res.lstFromWebsite;
     });
     chrome.storage.sync.get(["lstToWebsite"], (res) => {
-      websiteToInputElement.value = res.lstToWebsite;
+      websiteToInputElement.value = res.lstToWebsite
     });
   }
 
@@ -559,12 +571,12 @@
 
     // Tell background process that we're gonna do an action,
     // and it will do that job for us.
-    console.log('before', websiteToInputElement.value, 'http://localhost:3001')
+    console.log('before', JSON.parse(websiteToInputElement.value), 'http://localhost:3001')
     await chrome.runtime.sendMessage({
       action: "transfer",
       field: {
-        fromWebsite: truncateUrl(websiteFromInputElement.value),
-        toWebsite: truncateUrl(websiteToInputElement.value),
+        fromWebsite: truncateUrl(JSON.parse(websiteFromInputElement.value)?.url),
+        toWebsite: truncateUrl(JSON.parse(websiteToInputElement.value)?.url),
         // toWebsite: 'http://localhost:3001',
       },
     });
