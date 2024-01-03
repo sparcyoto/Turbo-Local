@@ -95,13 +95,11 @@
     console.log("kk", activeTab)
 
 
-    chrome.storage.sync.get(["lstFromWebsite"], (res) => {
-      // alert(res.lstToWebsite);
-      // websiteFromInputElement.value = activeTab.url || res.lstFromWebsite;
-      websiteFromInputElement.value = res.lstFromWebsite;
+    chrome.storage.sync.get(["prevFromWebsite"], (res) => {
+      websiteFromInputElement.value = res.prevFromWebsite;
     });
-    chrome.storage.sync.get(["lstToWebsite"], (res) => {
-      websiteToInputElement.value = res.lstToWebsite
+    chrome.storage.sync.get(["prevToWebsite"], (res) => {
+      websiteToInputElement.value = res.prevToWebsite
     });
   }
 
@@ -568,6 +566,14 @@
 
     const valid = handleValidation();
     if (!valid) return;
+
+    //setting localStorage for prev Values of select
+    chrome.storage.sync.set(
+      {
+        prevFromWebsite: websiteFromInputElement.value,
+        prevToWebsite: websiteToInputElement.value,
+      }
+    );
 
     // Tell background process that we're gonna do an action,
     // and it will do that job for us.
