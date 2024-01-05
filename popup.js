@@ -181,7 +181,6 @@
   const sleep = m => new Promise(r => setTimeout(r, m))
 
 
-  const vals = 'http://localhost:3001/acuracpo/shopping/checkout/creditApplication?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkZWFsZXJOYW1lIjpudWxsLCJkZWFsZXJJZCI6IjIwNjUiLCJpc3MiOiJUT0tFTl9HRU5FUkFUSU9OX1NFUlZJQ0UiLCJhc3NldFR5cGUiOiJTQ1giLCJyZWNlaXZlcklkIjoiLTEiLCJhc3NldElkIjoiMTA3NjM4IiwicmVjZWl2ZXJUeXBlIjoiQ1VTVE9NRVIiLCJ1bmlxIjoiN2NhM2IzNGUtNzhiYy00YmU0LWJiODgtMDdiOGY3ZTg0M2M0IiwidGVuYW50SWQiOiJob25kYTEiLCJleHAiOjE3MzQ2MTE5NDUsImRlcGFydG1lbnQiOm51bGwsImlhdCI6MTcwMzA3NTk0NSwiYXBwbGljYXRpb25OYW1lIjoiQ09OU1VNRVJfUE9SVEFMIn0.jhZgnXhaMGw6oaoaU0NJ6bP4G2ijd6dUx7EO2vycqgk'
 
   function getAllStorageSyncData() {
     // Immediately return a promise and start asynchronous work
@@ -588,7 +587,6 @@
     });
   }
 
-  // http://localhost:3001/acuracpo/shopping/checkout/creditApplication?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkZWFsZXJOYW1lIjpudWxsLCJkZWFsZXJJZCI6IjIwNjUiLCJpc3MiOiJUT0tFTl9HRU5FUkFUSU9OX1NFUlZJQ0UiLCJhc3NldFR5cGUiOiJTQ1giLCJyZWNlaXZlcklkIjoiLTEiLCJhc3NldElkIjoiMTA3NjM4IiwicmVjZWl2ZXJUeXBlIjoiQ1VTVE9NRVIiLCJ1bmlxIjoiN2NhM2IzNGUtNzhiYy00YmU0LWJiODgtMDdiOGY3ZTg0M2M0IiwidGVuYW50SWQiOiJob25kYTEiLCJleHAiOjE3MzQ2MTE5NDUsImRlcGFydG1lbnQiOm51bGwsImlhdCI6MTcwMzA3NTk0NSwiYXBwbGljYXRpb25OYW1lIjoiQ09OU1VNRVJfUE9SVEFMIn0.jhZgnXhaMGw6oaoaU0NJ6bP4G2ijd6dUx7EO2vycqgk
 
 
 
