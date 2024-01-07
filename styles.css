@@ -79,8 +79,14 @@ hr {
   margin-top: 0;
 }
 
+.topRules{
+  margin-top:16px;
+  margin-bottom: 10px;
+}
+
 .rules {
-  margin-bottom: 24px;
+  margin-top:32px;
+  margin-bottom: 10px;
 }
 
 .field-group {
@@ -127,8 +133,10 @@ select {
 .actions {
   display: flex;
   justify-content: center;
-  margin: 40px -2px 0 -2px;
+  /* margin: 40px -2px 0 -2px; */
 }
+
+
 
 button {
   /* background-color: #523b90; */
@@ -142,6 +150,17 @@ button {
   margin: 0 2px;
   flex: 1;
   cursor: pointer;
+}
+
+/* .transferButton{
+  background-color: #ffffff;
+  color: #523b90;
+  border: 20px solid red;
+} */
+
+.transferButton:hover{
+  background-color: #ffffff;
+  color: #523b90;
 }
 
 button:disabled {
