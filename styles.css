@@ -197,7 +197,9 @@ button:disabled {
 }
 
 .active, .accordion:hover {
-  background-color: #ccc; 
+  /* background-color: #ccc;  */
+  background-color: #3c11b1;
+  color: white;
 }
 
 .panel {
