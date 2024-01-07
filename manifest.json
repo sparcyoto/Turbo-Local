@@ -1,5 +1,5 @@
 {
-  "name": "Local Storage Transfer",
+  "name": "Turbo Local",
   "description": "Transfer local storage data key/value pairs from source to destination website on between tabs.",
   "version": "1.0.0",
   "manifest_version": 3,
