@@ -62,6 +62,10 @@
   async function getActiveTabURL(tabDetails) {
     const tabDetailsParsed = JSON.parse(tabDetails);
     const [tab] = await chrome.tabs.query({ index: tabDetailsParsed?.index });
+    // const [tab] = await chrome.tabs.query({ windowId: tabDetailsParsed?.id });
+    // const [tab] = await chrome.tabs.query({ lastFocusedWindow: tabDetailsParsed?.lastAccessed });
+
+    console.log('active', tab, JSON.parse(tabDetails))
 
     return tab;
   }
@@ -306,6 +310,7 @@
     // alert(activeTab.url);
     console.log('all', tabs)
     // alert(chrome.tabs)
+    // tabs.sort((a, b) => a.url.localeCompare(b.url))
 
 
     for (const tab of tabs) {
@@ -317,7 +322,7 @@
       if (!url) continue;
 
       const node = document.createElement("option");
-      node.value = JSON.stringify(tab);
+      node.value = JSON.stringify({ index: tab.index, url: tab.url });
       node.textContent = tab.url.substr(0, 120);
 
       websiteFromInputElement.appendChild(node.cloneNode(true));
@@ -394,17 +399,25 @@
     const [activeTab] = await chrome.tabs.query({ currentWindow: true, active: true });
     // const [activeTab] = await chrome.tabs.query({ index: 0 });
 
-    console.log("kk", activeTab)
 
-    const isLocalHostUrl = activeTab.url.includes('localhost')
+    const isLocalHostUrl = activeTab.url.includes('localhost');
+    const isExtension = activeTab.url.includes('chrome-extension://')
+
+    console.log("kk", activeTab, isExtension)
 
 
     chrome.storage.sync.get(["prevFromWebsite"], (res) => {
       // websiteFromInputElement.value = res.prevFromWebsite;
-      websiteFromInputElement.value = (isLocalHostUrl && res.prevFromWebsite) || JSON.stringify(activeTab);
+      console.log('kk', JSON.parse(res.prevFromWebsite), isLocalHostUrl, (isLocalHostUrl && res.prevFromWebsite) || JSON.stringify(activeTab));
+      websiteFromInputElement.value = (isLocalHostUrl && res.prevFromWebsite) || JSON.stringify({ index: activeTab.index, url: activeTab.url });
+
+      if (isExtension) websiteFromInputElement.value = res.prevFromWebsite;
     });
     chrome.storage.sync.get(["prevToWebsite"], (res) => {
-      websiteToInputElement.value = (isLocalHostUrl && JSON.stringify(activeTab)) || res.prevToWebsite;
+      // alert((isLocalHostUrl && JSON.stringify(activeTab)) || res.prevToWebsite)
+      console.log('kk', res.prevToWebsite)
+      websiteToInputElement.value = (isLocalHostUrl && JSON.stringify({ index: activeTab.index, url: activeTab.url })) || res.prevToWebsite;
+      if (isExtension) websiteToInputElement.value = res.prevToWebsite;
     });
   }
 
@@ -1014,6 +1027,7 @@
     const valid = handleValidation();
     if (!valid) return;
 
+    console.log('before', websiteFromInputElement.value, JSON.parse(websiteToInputElement.value), 'http://localhost:3001')
     //setting localStorage for prev Values of select
     chrome.storage.sync.set(
       {
@@ -1024,7 +1038,6 @@
 
     // Tell background process that we're gonna do an action,
     // and it will do that job for us.
-    console.log('before', JSON.parse(websiteToInputElement.value), 'http://localhost:3001')
     await chrome.runtime.sendMessage({
       action: "transfer",
       field: {
