@@ -7,6 +7,9 @@
    * @type {HTMLSelectElement}
    */
   const websiteFromInputElement = document.getElementById("from");
+  const startupLocalGeneration = document.getElementById("startupLocalGeneration");
+  const startupSubmit = document.getElementById("startupSubmit");
+  const startupLocalGenerationRadio = document.getElementById("startupLocalGenerationRadio");
 
   /**
    * @type {HTMLElement}
@@ -25,33 +28,35 @@
   const websiteToErrorElement =
     websiteToInputElement.parentElement.querySelector(".error");
 
+  const panelInside = document.getElementById("panelAcc")
   /**
    * @type {HTMLButtonElement}
    */
   const transferButton = document.getElementById("transfer");
 
+  const clearLocalStorage = document.getElementById("clearLocalStorage");
+  const clearSessionStorage = document.getElementById("clearSessionStorage");
+  const clearCookiesStorage = document.getElementById("clearCookiesStorage");
+
   const localhost3001 = document.getElementById("localhost3001");
   const localhost3000 = document.getElementById("localhost3000");
 
 
-  //buttons
-  const btnLocalhost3000 = document.getElementById("btnLocalhost3000");
-  const btnLocalhost3001 = document.getElementById("btnLocalhost3001");
+  // constanst
 
-
-
+  const STARTUP_ITEM = {
+    'AUTO_SELECTED_LOCAL_STARTUP': 'AUTO_SELECTED_LOCAL_STARTUP',
+  };
 
   // ===========
   // INIT
   // ===========
 
-
-
-
-
   (async () => {
     await injectAvailableTabs();
     await injectInitialTabValues();
+    await getLocalGenerationDataFromChromeStorage();
+    await getStartupLocalGenerationFromChromeStorage();
   })();
 
   async function getActiveTabURL(tabDetails) {
@@ -61,11 +66,245 @@
     return tab;
   }
 
+  let data = {};
+  let startupLocalGenerationData = []
+
+  async function getLocalGenerationDataFromChromeStorage() {
+    chrome.storage.sync.get(['localGenerationData'], (result) => {
+      data = result?.localGenerationData || {}
+    });
+  }
+
+  async function getStartupLocalGenerationFromChromeStorage() {
+    await chrome.storage.sync.get('startupLocalGenerationData', (result) => {
+      startupLocalGenerationData = result?.startupLocalGenerationData || []
+
+      runStarupItems();
+    });
+  }
+
+
+
+  const handleMakeLocalAndChangeUrl = async (inputValue, initialValue, indexInDataDetails, baseUrl) => {
+    if (inputValue === initialValue) window.open(inputValue);
+
+    const inputValueParam = inputValue.split('?');
+
+    const fromUrl = getLocalFinalUrl(JSON.parse(websiteFromInputElement.value).url).split('?')[0];
+    const fromUrlList = fromUrl.split('/')
+    const inputValueList = inputValueParam[0].split('/');
+
+    const fromUrlQueryToObject = convertQueryToObeject(getLocalFinalUrl(JSON.parse(websiteFromInputElement.value).url).split('?')[1]);
+    const inputValueQueryToObject = convertQueryToObeject(inputValueParam[1]);
+
+    const modifiedQueryDetails = {};
+    Object.entries(inputValueQueryToObject).map(([key, value]) => {
+      if (fromUrlQueryToObject[key] != value) modifiedQueryDetails[key] = value;
+    })
+
+    console.log('input', inputValueList, fromUrlList);
+
+    const modifiedList = []
+    let i = 3, j = 3;
+
+    while (i < fromUrlList.length && j < inputValueList.length) {
+
+      if (fromUrlList[i] != inputValueList[j]) {
+        modifiedList.push({ postion: i, value: inputValueList[j] });
+        j++;
+      }
+
+      i++; j++;
+    }
+
+    while (j < inputValueList.length) {
+      modifiedList.push({ postion: i, value: inputValueList[j] });
+
+      j++; i++;
+    }
+
+    data[baseUrl][indexInDataDetails] = { ...data[baseUrl][indexInDataDetails], mod: modifiedList, modifiedQueryDetails }
+
+    chrome.storage.sync.set(
+      {
+        localGenerationData: data,
+      }
+    );
+
+
+    console.log('final', { modifiedList, data, base: data[baseUrl][indexInDataDetails] })
+
+    // setTimeout(localGeneration, 600);
+    window.open(inputValue);
+  }
+
+  function makeUrlFromDataModifiedList(modifiedList, port, modifiedQueryDetails = {}, fullUrl) {
+    // const fullUrl = JSON.parse(websiteFromInputElement.value).url;
+    const fromUrl = getLocalFinalUrl(fullUrl, port).split('?')[0];
+    const fromUrlList = fromUrl.split('/')
+
+    let i = 0, j = 0;
+
+    var generatedFinalurlList = [];
+
+    while (i < fromUrlList.length && j < modifiedList.length) {
+      if (i != modifiedList[j].postion) {
+        generatedFinalurlList.push(fromUrlList[i] + '/')
+        i++;
+      } else {
+        generatedFinalurlList.push(modifiedList[j].value + '/')
+        j++;
+      }
+    }
+
+    while (i < fromUrlList.length) {
+      generatedFinalurlList.push(fromUrlList[i] + '/')
+      i++;
+    }
+
+    while (j < modifiedList.length) {
+      generatedFinalurlList.push(modifiedList[j].value + '/')
+      j++;
+    }
+
+    // this contain only params 
+    let finalMakeUrlFromDataModifiedList = generatedFinalurlList.join('').slice(0, -1);
+
+    const fromUrlQueryToObject = convertQueryToObeject(getLocalFinalUrl(fullUrl).split('?')[1]);
+    const finalQueryObject = { ...modifiedQueryDetails, ...fromUrlQueryToObject };
+
+    const finalQueryString = convertObjectToQueryString(finalQueryObject);
+
+    const finalQueryStringWithQuestionMark = finalQueryString ? '?' + finalQueryString : ''
+
+
+    console.log('makeUrlFromDataModifiedList', modifiedList, generatedFinalurlList, generatedFinalurlList.join('').slice(0, -1));
+
+
+    return finalMakeUrlFromDataModifiedList + finalQueryStringWithQuestionMark;
+  }
+
+  // const finalUrlFormDataModifiedList = makeUrlFromDataModifiedList([{ postion: 3, value: 'honda' }, { postion: 6, value: 'asdada' }])
+
+
+  async function handleAddPortToGenerateLocalList(port) {
+    const fromUrl = JSON.parse(websiteFromInputElement.value).url;
+
+    const { baseUrl } = getUrlParamList(fromUrl);
+
+
+    await chrome.storage.sync.get('localGenerationData', async (result) => {
+      var localGenerationData = {};
+      localGenerationData = result?.localGenerationData || {};
+
+      const baseUrlDetails = localGenerationData[baseUrl] || [];
+      baseUrlDetails.push({ port, mod: [] })
+
+      const finalLocalGenerationData = { ...localGenerationData, [baseUrl]: baseUrlDetails }
+
+      console.log('abc', { localGenerationData, finalLocalGenerationData });
+
+      await chrome.storage.sync.set({
+        localGenerationData: finalLocalGenerationData
+      })
+
+      data = finalLocalGenerationData;
+    });
+
+  }
+
+  async function renderGeneratePort() {
+
+    const label = document.createElement("div");
+    label.innerHTML = 'Enter Port No.'
+    label.classList.add('portLabel')
+
+    const input = document.createElement("input");
+    input.value = '3001';
+    input.classList.add('portInput')
+
+    const button = document.createElement("button");
+    button.innerHTML = 'Create Port';
+    const div = document.createElement("div");
+
+    button.onclick = async () => {
+      await handleAddPortToGenerateLocalList(input.value);
+      panelInside.innerHTML = '';
+      console.log('final data', input.value, data)
+      setTimeout(localGeneration, 500);
+    }
+
+    div.appendChild(label)
+    div.appendChild(input);
+    div.appendChild(button);
+
+
+    div.classList.add('flex')
+
+    panelInside.appendChild(div)
+
+  }
+
+  async function localGeneration() {
+    if (!websiteFromInputElement.value) return;
+
+    console.log('abc called ZZZZ')
+
+    const node = document.createElement("div");
+    panelInside.appendChild(node)
+
+    const fromUrl = JSON.parse(websiteFromInputElement?.value)?.url;
+
+    const { baseUrl } = getUrlParamList(fromUrl);
+
+    // clearing startup auto local generation select element
+    startupLocalGeneration.innerHTML = '';
+
+    data[baseUrl]?.forEach((val, index) => {
+      const input = document.createElement("input");
+      // input.value = val.url
+      const finalUrlFormDataModifiedList = makeUrlFromDataModifiedList(val?.mod, val?.port, val?.modifiedQueryDetails, fromUrl)
+      input.value = finalUrlFormDataModifiedList;
+
+      const button = document.createElement("button");
+      button.textContent = 'make local';
+
+      console.log('input', input)
+      input.onchange = async () => handleMakeLocalAndChangeUrl(input.value, val, index, baseUrl);
+      button.onclick = async () => { handleMakeLocalAndChangeUrl(input.value, val, index, baseUrl) }
+
+      const div = document.createElement("div");
+
+      div.appendChild(input);
+      div.appendChild(button);
+
+      div.classList.add('flex')
+
+      panelInside.appendChild(div);
+
+
+      // injecting options in startup auto local generation
+
+      const node = document.createElement("option");
+      node.value = JSON.stringify(val);
+      node.textContent = finalUrlFormDataModifiedList?.substr(0, 120);
+
+      console.log('abc called ZZZZ', finalUrlFormDataModifiedList)
+
+      startupLocalGeneration.appendChild(node.cloneNode(true));
+    })
+
+
+    renderGeneratePort()
+
+  }
+
+
   async function injectAvailableTabs() {
     const tabs = await chrome.tabs.query({});
     // const [activeTab] = await chrome.tabs.query({ currentWindow: true, active: true });
     // alert(activeTab.url);
-    // console.log('ac', activeTab.url)
+    console.log('all', tabs)
     // alert(chrome.tabs)
 
 
@@ -73,7 +312,6 @@
       // const url = tabs.url;
       const url = truncateUrl(tab.url);
       console.log('abc', { tab, abc: tab.url, url, sub: tab.url.substr(0, 150) })
-
 
       // const url = truncateUrl(tab.url);
       if (!url) continue;
@@ -84,7 +322,71 @@
 
       websiteFromInputElement.appendChild(node.cloneNode(true));
       websiteToInputElement.appendChild(node.cloneNode(true));
+      // startupLocalGeneration.appendChild(node.cloneNode(true));
     }
+  }
+
+  async function automaticLocalGenerationBasedOnStartupItem({ baseUrl: storedStartupBaseUrl, modifiedListForUrl }) {
+    const [activeTab] = await chrome.tabs.query({ currentWindow: true, active: true });
+    const { baseUrl } = getUrlParamList(activeTab?.url);
+    // marking the radio checked if it is selectedStorage
+    startupLocalGenerationRadio.checked = true;
+
+    if (baseUrl != storedStartupBaseUrl) return;
+
+    const tabs = await chrome.tabs.query({});
+    let isChromeExtensionOpened = false;
+
+    tabs.forEach(tab => {
+      if (tab?.url?.includes('chrome-extension://')) isChromeExtensionOpened = true;
+    })
+
+
+    // if we dont't have saved data for current base domain
+
+    const finalGeneratedUrl = makeUrlFromDataModifiedList(modifiedListForUrl?.mod, modifiedListForUrl?.port, modifiedListForUrl?.modifiedQueryDetails, activeTab?.url);
+
+
+    console.log('startup gen', { baseUrl, storedStartupBaseUrl, finalGeneratedUrl, isChromeExtensionOpened, tabs })
+
+    // alert(finalGeneratedUrl);
+    // if (baseUrl != storedStartupBaseUrl) return;
+    // setTimeout(() => { window.open(finalGeneratedUrl); }, 0);
+
+    // window.open(finalGeneratedUrl);
+
+    const handleOpenfinalGeneratedurl = (finalGeneratedUrl, isChromeExtensionOpened, extensionUrl) => {
+      console.log('asdadasda', finalGeneratedUrl)
+      window.open(finalGeneratedUrl);
+      if (!isChromeExtensionOpened) window.open(extensionUrl)
+    }
+
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: activeTab?.id, allFrames: true },
+        func: handleOpenfinalGeneratedurl,
+        args: [finalGeneratedUrl, isChromeExtensionOpened, window.location.href], // passing typeOfStorage to setDomainStorageData func
+      }
+    )
+
+
+  }
+
+  const startupItemVshandler = {
+    [STARTUP_ITEM.AUTO_SELECTED_LOCAL_STARTUP]: automaticLocalGenerationBasedOnStartupItem
+  }
+
+  async function runStarupItems() {
+    // check if startUpItem is present
+
+    console.log('STARTUP', startupLocalGenerationData)
+    startupLocalGenerationData.forEach(async startupLocalGenerationItem => {
+      const { startUpItem, baseUrl, modifiedListForUrl } = startupLocalGenerationItem || {};
+
+      const handler = startupItemVshandler[startUpItem];
+
+      await handler({ startUpItem, baseUrl, modifiedListForUrl })
+    })
   }
 
 
@@ -94,12 +396,15 @@
 
     console.log("kk", activeTab)
 
+    const isLocalHostUrl = activeTab.url.includes('localhost')
+
 
     chrome.storage.sync.get(["prevFromWebsite"], (res) => {
-      websiteFromInputElement.value = res.prevFromWebsite;
+      // websiteFromInputElement.value = res.prevFromWebsite;
+      websiteFromInputElement.value = (isLocalHostUrl && res.prevFromWebsite) || JSON.stringify(activeTab);
     });
     chrome.storage.sync.get(["prevToWebsite"], (res) => {
-      websiteToInputElement.value = res.prevToWebsite
+      websiteToInputElement.value = (isLocalHostUrl && JSON.stringify(activeTab)) || res.prevToWebsite;
     });
   }
 
@@ -111,44 +416,47 @@
 
     const paramList = param.split('/');
     const validParamList = paramList.slice(3);
-
+    const baseUrlList = paramList.slice(0, 3)
 
     return {
+      baseUrlList,
+      baseUrl: baseUrlList.join('/'),
       urlParamList: validParamList,
       queryString
     };
   }
 
-  function getLocalFinalUrl(url, localBaseUrl = 'http://localhost:3001/') {
+  function getLocalFinalUrl(url, port = '3000') {
 
     const { urlParamList, queryString } = getUrlParamList(url);
 
-    const finalUrl = localBaseUrl + urlParamList.join('/') + '?' + queryString;
+    const finalUrl = `http://localhost:${port}/` + urlParamList.join('/') + '?' + queryString;
 
     return finalUrl
   }
 
-  async function constructUrl() {
-    const tabs = await getActiveTabURL(websiteFromInputElement?.value);
+  // async function constructUrl() {
+  //   if (!websiteFromInputElement?.value) return;
+  //   const tabs = await getActiveTabURL(websiteFromInputElement?.value);
 
-    console.log('kk', tabs, websiteFromInputElement?.value)
+  //   console.log('kk', tabs, websiteFromInputElement?.value)
 
-    // return;
+  //   // return;
 
-    const url1 = tabs.url;
+  //   const url1 = tabs.url;
 
-    // const url1 = 'https://acuracertified-stage.aecloud.io/shopping/checkout/creditApplication?abc=10&bb=20'
-    // const url1 = window.location.href;
+  //   // const url1 = 'https://acuracertified-stage.aecloud.io/shopping/checkout/creditApplication?abc=10&bb=20'
+  //   // const url1 = window.location.href;
 
-    const finalUrl = getLocalFinalUrl(url1);
+  //   const finalUrl = getLocalFinalUrl(url1);
 
 
-    localhost3001.value = getLocalFinalUrl(url1, 'http://localhost:3001/');
-    localhost3000.value = getLocalFinalUrl(url1, 'http://localhost:3000/');
+  //   localhost3001.value = getLocalFinalUrl(url1, '3001');
+  //   localhost3000.value = getLocalFinalUrl(url1, '3000');
 
-  }
+  // }
 
-  constructUrl()
+  // constructUrl()
   // (async () => {
   //   await constructUrl();
   // })()
@@ -164,7 +472,11 @@
 
     for (i = 0; i < acc.length; i++) {
       acc[i].addEventListener("click", function () {
-        constructUrl()
+        // for the accordian to refresh content
+        panelInside.innerHTML = '';
+        localGeneration()
+
+        // constructUrl()
         this.classList.toggle("active");
         var panel = this.nextElementSibling;
         if (panel.style.display === "block") {
@@ -197,35 +509,38 @@
     });
   }
 
-  async function abc() {
-    const sessionData = await getAllStorageSyncData();
-    const tabs = await chrome.tabs.query({});
-    console.log('session', sessionData)
+  // async function abc() {
+  //   const sessionData = await getAllStorageSyncData();
+  //   const tabs = await chrome.tabs.query({});
+  //   console.log('session', sessionData)
 
-    // alert()
+  //   // alert()
 
-    const finalLocalUrl = getLocalFinalUrl(tabs[0].url)
+  //   const finalLocalUrl = getLocalFinalUrl(tabs[0].url)
 
 
-    sleep(2000).then(async () => {
-      const tabs = await chrome.tabs.query({});
+  //   sleep(2000).then(async () => {
+  //     const tabs = await chrome.tabs.query({});
 
-      for (const tab of tabs) {
-        // alert(tab.url)
-        if (tab.url.includes('localhost')) {
+  //     for (const tab of tabs) {
+  //       // alert(tab.url)
+  //       if (tab.url.includes('localhost')) {
 
-          console.log('abc includes', tab)
-          return
-        }
-      }
-      window.open(window.location.href)
-      window.location.href = finalLocalUrl
-    })
-  }
+  //         console.log('abc includes', tab)
+  //         return
+  //       }
+  //     }
+  //     window.open(window.location.href)
+  //     window.location.href = finalLocalUrl
+  //   })
+  // }
 
-  (async () => {
-    await abc();
-  })();
+  // (async () => {
+  //   await abc();
+  // })();
+
+
+
 
 
 
@@ -268,17 +583,148 @@
    */
   function clearError(element) {
     return () => {
+      panelInside.innerHTML = '';
+      localGeneration();
+
       hideErrorOnElement(element);
     };
   }
+
+
+  async function handleClearLocalStorage(params) {
+    if (!websiteFromInputElement?.value) return;
+    const activeTab = await getActiveTabURL(websiteFromInputElement?.value);
+
+    const handleClearLocal = () => localStorage.clear();
+
+    console.log('clear local', { activeTab, websiteFromInputElementCookieData })
+    const tabId = activeTab?.id
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tabId, allFrames: true },
+        func: handleClearLocal,
+        args: [], // passing typeOfStorage to setDomainStorageData func
+      },
+      (injectionResults) => {
+        try {
+          console.log('Setting SessionStorage Successfull', injectionResults)
+        } catch (err) {
+          console.error(
+            'Error occured in injectionResults of setStoragehandler',
+            err
+          )
+        }
+      }
+    )
+  }
+  async function handleClearSessionStorage(params) {
+    if (!websiteFromInputElement?.value) return;
+    const activeTab = await getActiveTabURL(websiteFromInputElement?.value);
+
+    const handleClearSession = () => sessionStorage.clear();
+
+    console.log('clear session', { activeTab, websiteFromInputElementCookieData })
+    const tabId = activeTab?.id
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tabId, allFrames: true },
+        func: handleClearSession,
+        args: [], // passing typeOfStorage to setDomainStorageData func
+      },
+      (injectionResults) => {
+        try {
+          console.log('Setting SessionStorage Successfull', injectionResults)
+        } catch (err) {
+          console.error(
+            'Error occured in injectionResults of setStoragehandler',
+            err
+          )
+        }
+      }
+    )
+  }
+  async function handleClearCookiesStorage(params) {
+    if (!websiteFromInputElement?.value) return;
+    const activeTab = await getActiveTabURL(websiteFromInputElement?.value);
+
+    const handleClearCookies = () => {
+      var cookies = document.cookie.split("; ");
+      for (var c = 0; c < cookies.length; c++) {
+        var d = window.location.hostname.split(".");
+        while (d.length > 0) {
+          var cookieBase = encodeURIComponent(cookies[c].split(";")[0].split("=")[0]) + '=; expires=Thu, 01-Jan-1970 00:00:01 GMT; domain=' + d.join('.') + ' ;path=';
+          var p = location.pathname.split('/');
+          document.cookie = cookieBase + '/';
+          while (p.length > 0) {
+            document.cookie = cookieBase + p.join('/');
+            p.pop();
+          };
+          d.shift();
+        }
+      }
+    }
+
+    console.log('clear cookies', { activeTab, websiteFromInputElementCookieData })
+    const tabId = activeTab?.id
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tabId, allFrames: true },
+        func: handleClearCookies,
+        args: [], // passing typeOfStorage to setDomainStorageData func
+      },
+      (injectionResults) => {
+        try {
+          console.log('Setting SessionStorage Successfull', injectionResults)
+        } catch (err) {
+          console.error(
+            'Error occured in injectionResults of setStoragehandler',
+            err
+          )
+        }
+      }
+    )
+
+  }
+
+
+  async function handleStartupSubmit(params) {
+    console.log('abc', startupLocalGenerationRadio.value, startupLocalGenerationRadio.checked, startupLocalGeneration.value);
+
+    if (startupLocalGenerationRadio.checked) {
+      const startupLocalGenerationDetails = JSON.parse(startupLocalGeneration.value);
+
+      const fromUrl = JSON.parse(websiteFromInputElement?.value)?.url;
+      const { baseUrl } = getUrlParamList(fromUrl);
+      // const url = makeUrlFromDataModifiedList(startupLocalGenerationDetails);
+
+      console.log('zzzz', 'sada', startupLocalGenerationDetails);
+
+      chrome.storage.sync.set(
+        {
+          startupLocalGenerationData: [...startupLocalGenerationData,
+          { startUpItem: STARTUP_ITEM.AUTO_SELECTED_LOCAL_STARTUP, baseUrl, modifiedListForUrl: startupLocalGenerationDetails }],
+        }
+      );
+    }
+
+    // if uncheckecd remove that data from chrome storage
+    if (!startupLocalGenerationRadio.checked) {
+      chrome.storage.sync.set(
+        {
+          startupLocalGenerationData: startupLocalGenerationData.filter(val => val.startUpItem != STARTUP_ITEM.AUTO_SELECTED_LOCAL_STARTUP)
+        }
+      );
+    }
+
+  }
+
+
 
   // ===================
   // EVENT LISTENERS
   // ===================
 
-  transferButton.addEventListener("click", handleTransfer);
-  btnLocalhost3000.addEventListener("click", () => openLocalUrl(localhost3000.value))
-  btnLocalhost3001.addEventListener("click", () => openLocalUrl(localhost3001.value))
+
   websiteFromInputElement.addEventListener(
     "change",
     clearError(websiteFromErrorElement)
@@ -287,6 +733,15 @@
     "change",
     clearError(websiteToErrorElement)
   );
+
+
+  transferButton.addEventListener("click", handleTransfer);
+
+  clearLocalStorage.addEventListener('click', handleClearLocalStorage)
+  clearSessionStorage.addEventListener('click', handleClearSessionStorage)
+  clearCookiesStorage.addEventListener('click', handleClearCookiesStorage)
+
+  startupSubmit.addEventListener('click', handleStartupSubmit)
 
   // ===================
   // HELPERS
@@ -317,9 +772,6 @@
 
   const session = 'session'
   const local = 'local'
-
-
-
 
   function normalizeUrl(url) {
     return url + "/*";
@@ -415,10 +867,6 @@
       }
     )
   }
-
-
-
-
 
   const getSessionStorageBtn = async () => {
 
@@ -586,6 +1034,8 @@
       },
     });
   }
+
+
 
 
 

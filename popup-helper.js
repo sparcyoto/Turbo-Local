@@ -62,3 +62,14 @@ function mappingElementsByName(props) {
     elements,
   };
 }
+
+
+function convertQueryToObeject(urlQuery = '') {
+  if (!urlQuery) return {};
+
+  return JSON.parse('{"' + decodeURI(urlQuery.replace(/&/g, "\",\"").replace(/=/g, "\":\"")) + '"}') || {}
+}
+
+function convertObjectToQueryString(object) {
+  return new URLSearchParams(object).toString()
+}

@@ -1,7 +1,79 @@
 body {
   width: 600px;
   padding: 16px;
+
+  background-color: #A9C9FF;
+  /* background-image: linear-gradient(180deg, #A9C9FF 0%, #FFBBEC 100%); */
+  
+
 }
+
+:root {
+  --font: #414141;
+  --underline: white;
+}
+
+.highlight-container, .highlight {
+  position: relative;
+}
+
+.highlight-container {
+  display: inline-block;
+}
+.highlight-container:before {
+  content: " ";
+  display: block;
+  height: 90%;
+  width: 100%;
+  margin-left: -3px;
+  margin-right: -3px;
+  position: absolute;
+  background: #ffd500;
+  transform: rotate(2deg);
+  top: -1px;
+  left: -1px;
+  border-radius: 20% 25% 20% 24%;
+  padding: 10px 3px 3px 10px;
+}
+
+
+h1 {
+  text-decoration: none;
+  font-size: 1.5rem;
+  color: var(--color);
+  transition: all 200ms ease-out;
+}
+
+h1:hover {
+  font-size: 54px;
+}
+
+h1:hover ~ hr {
+  width: 100%;
+}
+
+
+h1{
+  margin: 0px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  color: #523b90;
+  /* color: #aa00bd; */
+  /* color: #db61c7; */
+  font-size: 34px;
+}
+
+hr {
+  width: 0px;
+  height: 3px;
+  background: var(--underline);
+  border: var(--underline);
+  margin: 0px;
+  transition: width 450ms ease-out;
+}
+
 
 .title {
   margin-top: 0;
@@ -20,6 +92,7 @@ body {
   margin-bottom: 16px;
 }
 
+
 label {
   font-weight: bold;
   margin-bottom: 4px;
@@ -32,6 +105,15 @@ p {
 input {
   width: 500px;
   padding: 4px;
+}
+
+.portInput{
+  width: 350px;
+}
+
+.portLabel{
+  display: flex;
+  align-items: center;
 }
 
 select {
@@ -49,11 +131,12 @@ select {
 }
 
 button {
-  background-color: #73d22d;
+  /* background-color: #523b90; */
+  background-color: #523b90;
   color: #ffffff;
-  box-shadow: 0 3px 5px #dddddd;
+  /* box-shadow: 0 3px 5px #dddddd; */
   outline: none;
-  border: 1px solid #73d22d;
+  border: 1px solid #523b90;
   padding: 8px 16px;
   border-radius: 4px;
   margin: 0 2px;
@@ -67,7 +150,8 @@ button:disabled {
 }
 
 button:not(:disabled):hover {
-  background-color: #73d22d;
+  background-color: #523b90;
+  color: white;
 }
 
 .error {
@@ -78,7 +162,7 @@ button:not(:disabled):hover {
 }
 
 .show {
-  display: block;
+  display: block ;
 }
 
 .accordion {
@@ -99,6 +183,11 @@ button:not(:disabled):hover {
 }
 
 .panel {
+  background-color: #A9C9FF;
+  background-image: linear-gradient(180deg, #A9C9FF 0%, #A9C9FF 100%);
+  
+  
+
   padding: 0 18px;
   display: none;
   background-color: white;
@@ -107,4 +196,15 @@ button:not(:disabled):hover {
 
 .flex{
   display: flex;
+}
+
+.panelInside{
+  margin-top: 4px;
+  display: grid;
+
+  gap: 10px;
+}
+
+.startUpCheckBox{
+  width: auto !important;
 }

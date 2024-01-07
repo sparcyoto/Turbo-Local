@@ -6,9 +6,19 @@
 </head>
 
 <body>
-  <h1 class="title">Turbo Local</h1>
+  <div>
+    <h1 class="title">Turbo Local</h1>
+    <hr>
+  </div>
 
-  <p class="rules">Exchange localStorage, sessionStorage, cookies among tabs.</p>
+  <h3 class="rules">Exchange
+    <span class="highlight-container"><span class="highlight">localStorage</span></span>
+    &nbsp;&nbsp;&nbsp;&nbsp;,
+    <span class="highlight-container"><span class="highlight">sessionStorage</span></span>
+    &nbsp;&nbsp;&nbsp;&nbsp;,
+    <span class="highlight-container"><span class="highlight">cookies</span></span>
+    &nbsp;&nbsp;&nbsp; among tabs.
+  </h3>
 
   <div class="field-group">
     <label for="from">From</label>
@@ -26,15 +36,61 @@
     <p class="error">Field is invalid!</p>
   </div>
 
-  <button class="accordion">Select Local Generation >></button>
-  <div class="panel">
-    <div class="flex"><input id="localhost3000"><button id="btnLocalhost3000">Make Local</button> </div>
-    <div class="flex"><input id="localhost3001"><button id="btnLocalhost3001">Make Local</button> </div>
-
-  </div>
-
   <div class="actions">
     <button id="transfer">Do It!</button>
+  </div>
+
+  <h3 class="rules">Generate Localhost Url with custom port & memoise generated Url</h3>
+
+  <button class="accordion">Select Local Generation >></button>
+  <div class="panel">
+    <div class="panelInside" id="panelAcc">
+      <!-- <div class="flex"><input id="localhost3000"><button id="btnLocalhost3000">Make Local</button> </div>
+      <div class="flex"><input id="localhost3001"><button id="btnLocalhost3001">Make Local</button> </div> -->
+    </div>
+  </div>
+
+
+
+
+  <h3 class="rules">Clear Selected Tab Storage</h3>
+
+  <button class="accordion">Clear Selected tab Storage >></button>
+  <div class="panel">
+    <div class="panelInside">
+      <div> Clear Storage of from selected tab</div>
+      <div class="flex">
+        <button id="clearLocalStorage">Clear LocalStorage </button>
+        <button id="clearSessionStorage">Clear SessionStorage </button>
+        <button id="clearCookiesStorage">Clear CookiesStorage </button>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="rules">Change Startup Configuration</h3>
+
+  <button class="accordion">Startup configuration >></button>
+  <div class="panel">
+    <div class="panelInside">
+      <div class="flex">
+        <input type="checkbox" class="startUpCheckBox" id="startupLocalGenerationRadio">
+        <div class="field-group">
+          <label for="from">From</label>
+          <select name="from" id="startupLocalGeneration">
+            <option value="" disabled selected>Choose local tab</option>
+          </select>
+          <p class="error">Field is invalid!</p>
+        </div>
+      </div>
+
+      <label for="vehicle1"> I have a bike</label><br>
+      <!-- <input type="checkbox" class="startUpCheckBox" id="vehicle2" name="vehicle2" value="Car">
+      <label for="vehicle2"> I have a car</label><br>
+      <input type="checkbox" class="startUpCheckBox" id="vehicle3" name="vehicle3" value="Boat">
+      <label for="vehicle3"> I have a boat</label><br><br> -->
+      <button id="startupSubmit">Submit </button>
+    </div>
+  </div>
   </div>
 
 
