@@ -208,3 +208,7 @@ button:not(:disabled):hover {
 .startUpCheckBox{
   width: auto !important;
 }
+
+.startupSubmit{
+  margin-top: 10px;;
+}
