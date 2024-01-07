@@ -155,12 +155,11 @@ button {
 /* .transferButton{
   background-color: #ffffff;
   color: #523b90;
-  border: 20px solid red;
 } */
 
-.transferButton:hover{
-  background-color: #ffffff;
-  color: #523b90;
+.hoverButton:hover{
+  background-color: #3c11b1;
+  color: white;
 }
 
 button:disabled {
@@ -168,10 +167,10 @@ button:disabled {
   cursor: default;
 }
 
-button:not(:disabled):hover {
+/* button:not(:disabled):hover {
   background-color: #523b90;
   color: white;
-}
+} */
 
 .error {
   display: none;
