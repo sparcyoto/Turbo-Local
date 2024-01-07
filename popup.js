@@ -229,6 +229,7 @@
 
     const button = document.createElement("button");
     button.innerHTML = 'Create Port';
+    button.classList.add('hoverButton')
     const div = document.createElement("div");
 
     button.onclick = async () => {
@@ -272,6 +273,7 @@
 
       const button = document.createElement("button");
       button.textContent = 'make local';
+      button.classList.add('hoverButton')
 
       console.log('input', input)
       input.onchange = async () => handleMakeLocalAndChangeUrl(input.value, val, index, baseUrl);
