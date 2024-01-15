@@ -869,8 +869,7 @@
         try {
           console.log(
             'cookies Injection',
-            injectionResults,
-            injectionResults[0]?.result
+            injectionResults
           )
 
           chrome.storage.local.set({
@@ -904,7 +903,6 @@
         try {
           console.log(
             'injectionResults of getSessionStorageBtn.addEventListener',
-            injectionResults[0]?.result?.length ?? 0,
             injectionResults
           )
           for (const frameResult of injectionResults) {
@@ -931,7 +929,7 @@
       if (selectedStorage) {
         chrome.storage.local.get(typeOfStorage,
           function (items) {
-            console.log('DSFAFSDFSADF', items)
+            console.log('DSFAFSDFSADF', typeOfStorage, items)
             if (items[typeOfStorage]) {
               for (const storage of items[typeOfStorage]) {
                 const objKey = Object.keys(storage)
@@ -951,6 +949,68 @@
       )
     }
   }
+
+  const getLocalStorage = async () => {
+    const activeTab = await getActiveTabURL(websiteFromInputElement?.value)
+    const tabId = activeTab?.id
+
+    console.log('out', activeTab, tabId)
+    // console.log('out')
+
+
+    // await clearExtensionStorage(local)
+
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tabId, allFrames: true },
+        func: getDomainStorageData,
+        args: [local], // passing typeOfStorage to getDomainStorageData func
+      },
+      (injectionResults) => {
+        try {
+          console.log(
+            'injectionResults of getLocalStorage',
+            injectionResults
+          )
+          for (const frameResult of injectionResults) {
+            const result = frameResult?.result || []
+            chrome.storage.local.set({
+              local: result,
+            })
+          }
+        } catch (err) {
+          console.error(
+            'Error occured in injectionResults of getLocalStorage',
+            err
+          )
+        }
+      }
+    )
+  }
+
+  const setLocalStorage = async () => {
+    const activeTab = await getActiveTabURL(websiteToInputElement?.value)
+
+    console.log('This tab information', activeTab)
+    const tabId = activeTab?.id
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tabId, allFrames: true },
+        func: setDomainStorageData,
+        args: [local], // passing typeOfStorage to setDomainStorageData func
+      },
+      (injectionResults) => {
+        try {
+          console.log('Setting LocalStorage Successfull', injectionResults)
+        } catch (err) {
+          console.error(
+            'Error occured in injectionResults of LocalStorage',
+            err
+          )
+        }
+      }
+    )
+  };
 
 
   function setCookiesStorage() {
@@ -982,10 +1042,10 @@
       },
       (injectionResults) => {
         try {
-          console.log('Setting SessionStorage Successfull', injectionResults)
+          console.log('Setting cookies Successfull', injectionResults)
         } catch (err) {
           console.error(
-            'Error occured in injectionResults of setStoragehandler',
+            'Error occured in injectionResults of cookes handler',
             err
           )
         }
@@ -1023,7 +1083,10 @@
     await setCookiesStorageFromSelectedFromTab();
     await getSessionStorageBtn();
     await setSessionStorageBtn()
-    // return;
+
+    await getLocalStorage()
+    await setLocalStorage()
+    return;
 
 
     const valid = handleValidation();

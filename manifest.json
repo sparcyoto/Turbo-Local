@@ -3,9 +3,6 @@
   "description": "A lightning speed local Generation tool",
   "version": "1.0.0",
   "manifest_version": 3,
-  "background": {
-    "service_worker": "background.js"
-  },
   "permissions": [
     "storage",
     "tabs",
@@ -13,7 +10,8 @@
     "activeTab"
   ],
   "host_permissions": [
-    "*://*/*"
+    "https://*/*",
+    "http://*/*"
   ],
   "action": {
     "default_popup": "popup.html",
