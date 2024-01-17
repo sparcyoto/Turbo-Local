@@ -105,7 +105,7 @@
         {
           localGeneratedStartupData: {
             ...(result?.localGeneratedStartupData),// might be case multiple local generated for different sites
-            [toTab]: { fromUrl: fromUrl, toUrl: toUrl, done }
+            [toUrl]: { fromUrl: fromUrl, toUrl: toUrl, done }
           },
         }
       );
@@ -152,12 +152,11 @@
         // const { fromUrl, toUrl, done } = data[1];
         if (done) return;
 
-        console.log('getSaveLocalDevelopmentOnChromeStorage', { result, fromUrl, toUrl, done });
-
 
         const [fromTab] = await chrome.tabs.query({ url: fromUrl });
         const [toTab] = await chrome.tabs.query({ url: toUrl });
 
+        console.log('getSaveLocalDevelopmentOnChromeStorage', { key, result, fromUrl, toUrl, done, fromTab, toTab });
         if (!fromTab || !toTab) return;
 
 
