@@ -162,6 +162,10 @@ button {
   color: white;
 }
 
+.startupLocalTansferDoneMessage{
+  color: #523b90;
+}
+
 button:disabled {
   opacity: 0.5;
   cursor: default;

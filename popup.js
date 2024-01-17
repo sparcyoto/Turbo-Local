@@ -6,6 +6,7 @@
   /**
    * @type {HTMLSelectElement}
    */
+  const startupLocalTansferDoneMessage = document.getElementById("startupLocalTansferDoneMessage");
   const websiteFromInputElement = document.getElementById("from");
   const startupLocalGeneration = document.getElementById("startupLocalGeneration");
   const startupSubmit = document.getElementById("startupSubmit");
@@ -110,6 +111,14 @@
         }
       );
     });
+
+    if (done) {
+      startupLocalTansferDoneMessage.innerHTML = 'Automatic Transfered storages to "Active Local Url" &#9989; &#9989;';
+
+      setTimeout(() => {
+        startupLocalTansferDoneMessage.innerHTML = '';
+      }, 3000)
+    }
   }
 
   async function saveLocalDevelopmentOnChromeStorage(activeUrl, localUrl) {
