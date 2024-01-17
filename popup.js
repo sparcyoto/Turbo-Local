@@ -144,45 +144,7 @@
   }
 
   async function getSaveLocalDevelopmentOnChromeStorage() {
-    const [tabs] = await chrome.tabs.query({ url: 'https://acura-stage.aecloud.io/shopping/checkout/subscriptions?token=eyJ0eXAiOiJKV1QiLCJ[%E2%80%A6]JfUE9SVEFMIn0.SJ0zI0cCDvwWlAkMzUWQDzqgOcV26Dv_VDematqT71g' });
-    console.log('getSaveLocalDevelopmentOnChromeStorage', tabs);
 
-    // const resultDatas = {
-    //   'https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query': {
-    //     fromUrl: 'https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query',
-    //     toUrl: 'http://localhost:3001/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query',
-    //     done: false
-    //   }
-    // }
-
-    // Object.entries(resultDatas).forEach(async ([key, value] = []) => {
-    //   const { fromUrl, toUrl, done } = value || {};
-    //   if (done) return;
-
-    //   const [fromTab] = await chrome.tabs.query({ url: fromUrl });
-    //   const [toTab] = await chrome.tabs.query({ url: toUrl });
-
-    //   if (!fromTab || !toTab) return;
-
-
-    //   await getCookiesStorageFromSelectedFromTab(fromTab, toTab);
-    //   await setCookiesStorageFromSelectedFromTab(fromTab, toTab);
-    //   await getSessionStorageBtn(fromTab, toTab);
-    //   await setSessionStorageBtn(fromTab, toTab)
-
-    //   await getLocalStorage(fromTab, toTab);
-    //   await setLocalStorage(fromTab, toTab);
-    // })
-
-
-    // return;
-
-    // const resultData = {
-    //   'https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query': {
-    //     fromUrl: 'https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query',
-    //     toUrl: 'http://localhost:3001/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query'
-    //   }
-    // }
     await chrome.storage.sync.get('localGeneratedStartupData', async (result = {}) => {
 
       Object.entries(result?.localGeneratedStartupData || {}).forEach(async ([key, value]) => {
