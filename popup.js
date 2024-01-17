@@ -37,6 +37,7 @@
   const clearLocalStorage = document.getElementById("clearLocalStorage");
   const clearSessionStorage = document.getElementById("clearSessionStorage");
   const clearCookiesStorage = document.getElementById("clearCookiesStorage");
+  const reloadPage = document.getElementById("reloadPage");
 
   const localhost3001 = document.getElementById("localhost3001");
   const localhost3000 = document.getElementById("localhost3000");
@@ -57,6 +58,9 @@
     await injectInitialTabValues();
     await getLocalGenerationDataFromChromeStorage();
     await getStartupLocalGenerationFromChromeStorage();
+
+    // startup item to get local tabs detail to automatically transfer data
+    await getSaveLocalDevelopmentOnChromeStorage();
   })();
 
   async function getActiveTabURL(tabDetails) {
@@ -87,10 +91,141 @@
     });
   }
 
+  async function removedSavedLocalDevelopmentItemOnChromeStorage(fromTab, toTab, done) {
+    if (!fromTab || !toTab) return;
+
+    console.log('getSaveLocalDevelopmentOnChromeStorage remove', { fromTab, toTab, done })
+    const fromUrl = fromTab?.url;
+    const toUrl = toTab?.url;
+
+
+    await chrome.storage.sync.get('localGeneratedStartupData', (result = {}) => {
+
+      chrome.storage.sync.set(
+        {
+          localGeneratedStartupData: {
+            ...(result?.localGeneratedStartupData),// might be case multiple local generated for different sites
+            [toTab]: { fromUrl: fromUrl, toUrl: toUrl, done }
+          },
+        }
+      );
+    });
+  }
+
+  async function saveLocalDevelopmentOnChromeStorage(activeUrl, localUrl) {
+    let foundStartupStorage = false;
+
+    // alert(activeUrl)
+
+
+    await chrome.storage.sync.get('localGeneratedStartupData', (result = {}) => {
+      foundStartupStorage = true;
+      chrome.storage.sync.set(
+        {
+          localGeneratedStartupData: {
+            ...(result?.localGeneratedStartupData),// might be case multiple local generated for different sites
+            [localUrl]: { fromUrl: activeUrl, toUrl: localUrl, done: false }
+          },
+        }
+      );
+    });
+
+    if (!foundStartupStorage) {
+
+      chrome.storage.sync.set(
+        {
+          localGeneratedStartupData: {
+            [localUrl]: { fromUrl: activeUrl, toUrl: localUrl, done: false }
+          },
+        }
+      );
+    }
+
+  }
+
+  async function getSaveLocalDevelopmentOnChromeStorage() {
+    const [tabs] = await chrome.tabs.query({ url: 'https://acura-stage.aecloud.io/shopping/checkout/subscriptions?token=eyJ0eXAiOiJKV1QiLCJ[%E2%80%A6]JfUE9SVEFMIn0.SJ0zI0cCDvwWlAkMzUWQDzqgOcV26Dv_VDematqT71g' });
+    console.log('getSaveLocalDevelopmentOnChromeStorage', tabs);
+
+    // const resultDatas = {
+    //   'https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query': {
+    //     fromUrl: 'https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query',
+    //     toUrl: 'http://localhost:3001/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query',
+    //     done: false
+    //   }
+    // }
+
+    // Object.entries(resultDatas).forEach(async ([key, value] = []) => {
+    //   const { fromUrl, toUrl, done } = value || {};
+    //   if (done) return;
+
+    //   const [fromTab] = await chrome.tabs.query({ url: fromUrl });
+    //   const [toTab] = await chrome.tabs.query({ url: toUrl });
+
+    //   if (!fromTab || !toTab) return;
+
+
+    //   await getCookiesStorageFromSelectedFromTab(fromTab, toTab);
+    //   await setCookiesStorageFromSelectedFromTab(fromTab, toTab);
+    //   await getSessionStorageBtn(fromTab, toTab);
+    //   await setSessionStorageBtn(fromTab, toTab)
+
+    //   await getLocalStorage(fromTab, toTab);
+    //   await setLocalStorage(fromTab, toTab);
+    // })
+
+
+    // return;
+
+    // const resultData = {
+    //   'https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query': {
+    //     fromUrl: 'https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query',
+    //     toUrl: 'http://localhost:3001/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/query'
+    //   }
+    // }
+    await chrome.storage.sync.get('localGeneratedStartupData', async (result = {}) => {
+
+      Object.entries(result?.localGeneratedStartupData || {}).forEach(async ([key, value]) => {
+        const { fromUrl, toUrl, done } = value || {};
+        // const { fromUrl, toUrl, done } = data[1];
+        if (done) return;
+
+        console.log('getSaveLocalDevelopmentOnChromeStorage', { result, fromUrl, toUrl, done });
+
+
+        const [fromTab] = await chrome.tabs.query({ url: fromUrl });
+        const [toTab] = await chrome.tabs.query({ url: toUrl });
+
+        if (!fromTab || !toTab) return;
+
+
+        await getCookiesStorageFromSelectedFromTab(fromTab, toTab);
+        await setCookiesStorageFromSelectedFromTab(fromTab, toTab);
+        await getSessionStorageBtn(fromTab, toTab);
+        await setSessionStorageBtn(fromTab, toTab)
+
+        await getLocalStorage(fromTab, toTab);
+        await setLocalStorage(fromTab, toTab);
+      })
+
+    });
+
+    // chrome.storage.sync.set(
+    //   {
+    //     localGeneratedStartupData: {}
+    //   }
+    // );
+  }
+
 
 
   const handleMakeLocalAndChangeUrl = async (inputValue, initialValue, indexInDataDetails, baseUrl) => {
+    saveLocalDevelopmentOnChromeStorage(JSON.parse(websiteFromInputElement?.value)?.url, inputValue)
     if (inputValue === initialValue) window.open(inputValue);
+
+
+    console.log('saveLocalDevelopmentOnChromeStorage', { inputValue, initialValue, indexInDataDetails, baseUrl })
+
 
     const inputValueParam = inputValue.split('?');
 
@@ -410,7 +545,7 @@
 
     chrome.storage.sync.get(["prevFromWebsite"], (res) => {
       // websiteFromInputElement.value = res.prevFromWebsite;
-      console.log('kk', JSON.parse(res.prevFromWebsite), isLocalHostUrl, (isLocalHostUrl && res.prevFromWebsite) || JSON.stringify(activeTab));
+      // console.log('kk', JSON.parse(res.prevFromWebsite), isLocalHostUrl, (isLocalHostUrl && res.prevFromWebsite) || JSON.stringify(activeTab));
       websiteFromInputElement.value = (isLocalHostUrl && res.prevFromWebsite) || JSON.stringify({ index: activeTab.index, url: activeTab.url });
 
       if (isExtension) websiteFromInputElement.value = res.prevFromWebsite;
@@ -701,6 +836,21 @@
 
   }
 
+  async function handleReloadPage() {
+    if (!websiteFromInputElement?.value) return;
+    const activeTab = await getActiveTabURL(websiteFromInputElement?.value);
+
+    const handleReload = () => window.location.reload();
+
+    const tabId = activeTab?.id
+    chrome.scripting.executeScript(
+      {
+        target: { tabId: tabId, allFrames: true },
+        func: handleReload,
+        args: [],
+      }, () => { })
+  }
+
 
   async function handleStartupSubmit(params) {
     console.log('abc', startupLocalGenerationRadio.value, startupLocalGenerationRadio.checked, startupLocalGeneration.value);
@@ -755,6 +905,7 @@
   clearLocalStorage.addEventListener('click', handleClearLocalStorage)
   clearSessionStorage.addEventListener('click', handleClearSessionStorage)
   clearCookiesStorage.addEventListener('click', handleClearCookiesStorage)
+  reloadPage.addEventListener('click', handleReloadPage)
 
   startupSubmit.addEventListener('click', handleStartupSubmit)
 
@@ -848,9 +999,9 @@
 
   }
 
-  const getCookiesStorageFromSelectedFromTab = async () => {
+  const getCookiesStorageFromSelectedFromTab = async (fromTab, toTab) => {
 
-    const activeTab = await getActiveTabURL(websiteFromInputElement?.value)
+    const activeTab = fromTab || await getActiveTabURL(websiteFromInputElement?.value);
     const tabId = activeTab?.id
 
     console.log('out', activeTab, tabId)
@@ -882,9 +1033,9 @@
     )
   }
 
-  const getSessionStorageBtn = async () => {
+  const getSessionStorageBtn = async (fromTab, toTab) => {
 
-    const activeTab = await getActiveTabURL(websiteFromInputElement?.value)
+    const activeTab = fromTab || await getActiveTabURL(websiteFromInputElement?.value)
     const tabId = activeTab?.id
 
     console.log('out', activeTab, tabId)
@@ -950,8 +1101,8 @@
     }
   }
 
-  const getLocalStorage = async () => {
-    const activeTab = await getActiveTabURL(websiteFromInputElement?.value)
+  const getLocalStorage = async (fromTab, toTab) => {
+    const activeTab = fromTab || await getActiveTabURL(websiteFromInputElement?.value)
     const tabId = activeTab?.id
 
     console.log('out', activeTab, tabId)
@@ -988,18 +1139,19 @@
     )
   }
 
-  const setLocalStorage = async () => {
-    const activeTab = await getActiveTabURL(websiteToInputElement?.value)
+  const setLocalStorage = async (fromTab, toTab) => {
+    const activeTab = toTab || await getActiveTabURL(websiteToInputElement?.value);
 
-    console.log('This tab information', activeTab)
+    console.log('local tab info', { activeTab, fromTab, toTab })
     const tabId = activeTab?.id
-    chrome.scripting.executeScript(
+    const data = await chrome.scripting.executeScript(
       {
         target: { tabId: tabId, allFrames: true },
         func: setDomainStorageData,
         args: [local], // passing typeOfStorage to setDomainStorageData func
       },
-      (injectionResults) => {
+      async (injectionResults) => {
+        await removedSavedLocalDevelopmentItemOnChromeStorage(fromTab, toTab, !!injectionResults)
         try {
           console.log('Setting LocalStorage Successfull', injectionResults)
         } catch (err) {
@@ -1010,7 +1162,10 @@
         }
       }
     )
+
+    console.log('LocalStorage data', data)
   };
+
 
 
   function setCookiesStorage() {
@@ -1029,8 +1184,8 @@
   }
 
 
-  const setCookiesStorageFromSelectedFromTab = async () => {
-    const activeTab = await getActiveTabURL(websiteToInputElement?.value)
+  const setCookiesStorageFromSelectedFromTab = async (fromTab, toTab) => {
+    const activeTab = toTab || await getActiveTabURL(websiteToInputElement?.value)
 
     console.log('set cookies', { activeTab, websiteFromInputElementCookieData })
     const tabId = activeTab?.id
@@ -1040,7 +1195,9 @@
         func: setCookiesStorage,
         args: [], // passing typeOfStorage to setDomainStorageData func
       },
-      (injectionResults) => {
+      async (injectionResults) => {
+        await removedSavedLocalDevelopmentItemOnChromeStorage(fromTab, toTab, !!injectionResults)
+
         try {
           console.log('Setting cookies Successfull', injectionResults)
         } catch (err) {
@@ -1053,8 +1210,8 @@
     )
   };
 
-  const setSessionStorageBtn = async () => {
-    const activeTab = await getActiveTabURL(websiteToInputElement?.value)
+  const setSessionStorageBtn = async (fromTab, toTab) => {
+    const activeTab = toTab || await getActiveTabURL(websiteToInputElement?.value)
 
     console.log('This tab information', activeTab)
     const tabId = activeTab?.id
@@ -1064,7 +1221,8 @@
         func: setDomainStorageData,
         args: [session], // passing typeOfStorage to setDomainStorageData func
       },
-      (injectionResults) => {
+      async (injectionResults) => {
+        await removedSavedLocalDevelopmentItemOnChromeStorage(fromTab, toTab, !!injectionResults)
         try {
           console.log('Setting SessionStorage Successfull', injectionResults)
         } catch (err) {
@@ -1085,14 +1243,14 @@
     await setSessionStorageBtn()
 
     await getLocalStorage()
-    await setLocalStorage()
-    return;
+    await setLocalStorage();
 
 
     const valid = handleValidation();
+    // console.log('before', websiteFromInputElement.value, JSON.parse(websiteToInputElement.value), valid)
     if (!valid) return;
 
-    console.log('before', websiteFromInputElement.value, JSON.parse(websiteToInputElement.value), 'http://localhost:3001')
+    // console.log('before', websiteFromInputElement.value, JSON.parse(websiteToInputElement.value), 'http://localhost:3001')
     //setting localStorage for prev Values of select
     chrome.storage.sync.set(
       {
@@ -1100,6 +1258,9 @@
         prevToWebsite: websiteToInputElement.value,
       }
     );
+
+    return;
+
 
     // Tell background process that we're gonna do an action,
     // and it will do that job for us.
