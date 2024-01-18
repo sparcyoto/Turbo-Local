@@ -1,7 +1,7 @@
 {
   "name": "Turbo Local",
-  "description": "A lightning speed local Generation tool",
-  "version": "1.0.1",
+  "description": "Instant Duplicate & remember any tab environment(login/Non-login,) into local testing environment",
+  "version": "1.0.2",
   "manifest_version": 3,
   "permissions": [
     "storage",

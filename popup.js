@@ -470,12 +470,12 @@
     const handleOpenfinalGeneratedurl = (finalGeneratedUrl, isChromeExtensionOpened, extensionUrl) => {
       console.log('asdadasda', finalGeneratedUrl)
       window.open(finalGeneratedUrl);
-      if (!isChromeExtensionOpened) window.open(extensionUrl)
+      // if (!isChromeExtensionOpened) window.open(extensionUrl)
     }
 
     chrome.scripting.executeScript(
       {
-        target: { tabId: activeTab?.id, allFrames: true },
+        target: { tabId: activeTab?.id },
         func: handleOpenfinalGeneratedurl,
         args: [finalGeneratedUrl, isChromeExtensionOpened, window.location.href], // passing typeOfStorage to setDomainStorageData func
       }
